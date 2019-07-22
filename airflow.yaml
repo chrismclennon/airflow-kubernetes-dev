@@ -1,0 +1,234 @@
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: airflow-priority-class
+value: 1000000
+globalDefault: false
+description: >
+  This PriorityClass should be used only for deployments to run airflow core
+  services (scheduler, webserver, worker).
+
+#####################
+# AIRFLOW NAMESPACE #
+#####################
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: airflow-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["jobs", "jobs/log", "pods", "pods/log"]
+  verbs: ["create", "delete", "describe", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: airflow-cluster-role-binding
+  namespace: airflow
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: airflow
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: airflow-cluster-role
+  apiGroup: ""
+
+#############
+# WEBSERVER #
+#############
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  namespace: airflow
+spec:
+  type: LoadBalancer
+  selector:
+    app: airflow
+    component: webserver
+  ports:
+    - name: airflow-webserver
+      protocol: TCP
+      port: 80
+      targetPort: webserver-port
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  namespace: airflow
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: webserver
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: airflow-webserver
+          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          imagePullPolicy: Always
+          ports:
+          - name: webserver-port
+            containerPort: 8080
+          args: ["webserver"]
+      priorityClassName: airflow-priority-class
+
+#############
+# SCHEDULER #
+#############
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: airflow
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: airflow-scheduler
+          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          imagePullPolicy: Always
+          args: ["scheduler"]
+      priorityClassName: airflow-priority-class
+
+##########
+# WORKER #
+##########
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-worker
+  namespace: airflow
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: worker
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: airflow-worker
+          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          imagePullPolicy: Always
+          args: ["worker"]
+      priorityClassName: airflow-priority-class
+
+#########
+# MYSQL #
+#########
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-db
+  namespace: airflow
+spec:
+  type: ClusterIP
+  selector:
+    app: airflow
+    component: db
+  ports:
+    - name: airflow-db
+      protocol: TCP
+      port: 3306
+      targetPort: db-port
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-db
+  namespace: airflow
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: db
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: airflow-db
+          image: mysql:5.7
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: password
+            - name: MYSQL_DATABASE
+              value: airflow
+            - name: MYSQL_USER
+              value: airflow
+            - name: MYSQL_PASSWORD
+              value: password
+          imagePullPolicy: Always
+          ports:
+          - name: db-port
+            containerPort: 3306
+          args: ["--explicit_defaults_for_timestamp=1"]
+      priorityClassName: airflow-priority-class
+
+#########
+# REDIS #
+#########
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-redis
+  namespace: airflow
+spec:
+  type: ClusterIP
+  selector:
+    app: airflow
+    component: redis
+  ports:
+    - name: airflow-redis
+      protocol: TCP
+      port: 6379
+      targetPort: redis-port
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-redis
+  namespace: airflow
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: redis
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: airflow-redis
+          image: redis:5
+          imagePullPolicy: Always
+          ports:
+          - name: redis-port
+            containerPort: 6379
+      priorityClassName: airflow-priority-class
+
