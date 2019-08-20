@@ -26,7 +26,7 @@ RUN curl -L -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-
 RUN pip install Jinja2==2.10.1 Werkzeug==0.15.4 Flask==1.0.4
 
 # Install airflow
-ARG AIRFLOW_VERSION=1.10.3
+ARG AIRFLOW_VERSION=1.10.4
 ENV AIRFLOW_GPL_UNIDECODE yes
 ENV AIRFLOW_HOME /var/local/airflow
 RUN useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
