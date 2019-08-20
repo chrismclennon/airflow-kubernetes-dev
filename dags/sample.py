@@ -26,7 +26,7 @@ dag = DAG(
 run_first = KubernetesPodOperator(
     task_id='run_me_first',
     name='run-me-first',
-    namespace='default',
+    namespace='airflow-tasks',
     in_cluster=True,
     is_delete_operator_pod=False,
     startup_timeout_seconds=120,
@@ -40,7 +40,7 @@ run_first = KubernetesPodOperator(
 run_last = KubernetesPodOperator(
     task_id='run_me_last',
     name='run-me-last',
-    namespace='default',
+    namespace='airflow-tasks',
     in_cluster=True,
     is_delete_operator_pod=False,
     image='bash',
@@ -53,7 +53,7 @@ for i in range(5):
     t1 = KubernetesPodOperator(
         task_id='run_this_t1_{i}'.format(i=i),
         name='run-this-t1-{i}'.format(i=i),
-        namespace='default',
+        namespace='airflow-tasks',
         in_cluster=True,
         is_delete_operator_pod=False,
         image='bash',
@@ -65,7 +65,7 @@ for i in range(5):
     t2 = KubernetesPodOperator(
         task_id='run_this_t2_{i}'.format(i=i),
         name='run-this-t2-{i}'.format(i=i),
-        namespace='default',
+        namespace='airflow-tasks',
         in_cluster=True,
         is_delete_operator_pod=False,
         image='bash',
@@ -77,7 +77,7 @@ for i in range(5):
     t3 = KubernetesPodOperator(
         task_id='run_this_t3_{i}'.format(i=i),
         name='run-this-t3-{i}'.format(i=i),
-        namespace='default',
+        namespace='airflow-tasks',
         in_cluster=True,
         is_delete_operator_pod=False,
         image='bash',
@@ -89,7 +89,7 @@ for i in range(5):
     t4 = KubernetesPodOperator(
         task_id='run_this_t4_{i}'.format(i=i),
         name='run-this-t4-{i}'.format(i=i),
-        namespace='default',
+        namespace='airflow-tasks',
         in_cluster=True,
         is_delete_operator_pod=False,
         image='bash',

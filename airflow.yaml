@@ -42,6 +42,15 @@ roleRef:
   name: airflow-cluster-role
   apiGroup: ""
 
+###########################
+# AIRFLOW TASKS NAMESPACE #
+###########################
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: airflow-tasks
+
 #############
 # WEBSERVER #
 #############
@@ -84,6 +93,10 @@ spec:
           - name: webserver-port
             containerPort: 8080
           args: ["webserver"]
+      initContainers:
+        - name: wait-for-mysql
+          image: mysql:5.7
+          command: ['bash', '-c', 'until [[ $(mysql -h airflow-db.airflow.svc.cluster.local -u airflow -p airflow --password=password -e "SHOW TABLES;") == *"dag"* ]]; do echo "Waiting for MySQL..."; sleep 1; done;']
       priorityClassName: airflow-priority-class
 
 #############
@@ -109,6 +122,10 @@ spec:
           image: chrismclennon/airflow-kubernetes-dev:1.10.3
           imagePullPolicy: Always
           args: ["scheduler"]
+      initContainers:
+        - name: wait-for-mysql
+          image: mysql:5.7
+          command: ['bash', '-c', 'until [[ $(mysql -h airflow-db.airflow.svc.cluster.local -u airflow -p airflow --password=password -e "SHOW DATABASES;") == *"airflow"* ]]; do echo "Waiting for MySQL..."; sleep 1; done;']
       priorityClassName: airflow-priority-class
 
 ##########
@@ -134,6 +151,10 @@ spec:
           image: chrismclennon/airflow-kubernetes-dev:1.10.3
           imagePullPolicy: Always
           args: ["worker"]
+      initContainers:
+        - name: wait-for-mysql
+          image: mysql:5.7
+          command: ['bash', '-c', 'until [[ $(mysql -h airflow-db.airflow.svc.cluster.local -u airflow -p airflow --password=password -e "SHOW TABLES;") == *"dag"* ]]; do echo "Waiting for MySQL..."; sleep 1; done;']
       priorityClassName: airflow-priority-class
 
 #########
