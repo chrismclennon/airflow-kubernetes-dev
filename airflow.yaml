@@ -87,7 +87,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: airflow-webserver
-          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          image: chrismclennon/airflow-kubernetes-dev:1.10.4
           imagePullPolicy: Always
           ports:
           - name: webserver-port
@@ -119,7 +119,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: airflow-scheduler
-          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          image: chrismclennon/airflow-kubernetes-dev:1.10.4
           imagePullPolicy: Always
           args: ["scheduler"]
       initContainers:
@@ -148,7 +148,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: airflow-worker
-          image: chrismclennon/airflow-kubernetes-dev:1.10.3
+          image: chrismclennon/airflow-kubernetes-dev:1.10.4
           imagePullPolicy: Always
           args: ["worker"]
       initContainers:
